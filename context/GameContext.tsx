@@ -4,7 +4,8 @@ import { loadCollection, saveCollection } from "../utils/storage";
 
 type GameContextType = {
   coins: number;
-  setCoins: (coins: number) => void;
+  unlimitedCoins: boolean;
+  spendCoins: (amount: number) => boolean;
   collection: CardType[];
   addCards: (cards: CardType[]) => void;
 };
@@ -12,8 +13,9 @@ type GameContextType = {
 export const GameContext = createContext({} as GameContextType);
 
 export function GameProvider({ children }: { children: ReactNode }) {
-  const [coins, setCoins] = useState(100);
+  const [coins, setCoins] = useState(999999);
   const [collection, setCollection] = useState<CardType[]>([]);
+  const unlimitedCoins = true;
 
   useEffect(() => {
     loadCollection().then(setCollection);
@@ -23,12 +25,21 @@ export function GameProvider({ children }: { children: ReactNode }) {
     saveCollection(collection);
   }, [collection]);
 
+  const spendCoins = (amount: number) => {
+    if (unlimitedCoins) return true;
+    if (coins < amount) return false;
+    setCoins((prev) => prev - amount);
+    return true;
+  };
+
   const addCards = (cards: CardType[]) => {
     setCollection((prev) => [...prev, ...cards]);
   };
 
   return (
-    <GameContext.Provider value={{ coins, setCoins, collection, addCards }}>
+    <GameContext.Provider
+      value={{ coins, unlimitedCoins, spendCoins, collection, addCards }}
+    >
       {children}
     </GameContext.Provider>
   );

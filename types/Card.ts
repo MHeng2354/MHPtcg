@@ -1,4 +1,13 @@
-export type CardRarity = "common" | "rare" | "ultra";
+import { ImageSourcePropType } from "react-native";
+
+export type CardRarity =
+  | "common"
+  | "uncommon"
+  | "rare"
+  | "ultraRare"
+  | "illustrationRare"
+  | "specialIllustrationRare"
+  | "hyperRare";
 
 export type CardType = {
   id: string;
@@ -10,7 +19,7 @@ export type CardType = {
 export type PackType = {
   id: string;
   name: string;
+  setId: string;
   price: number;
-  image: string;
-  theme: "classic" | "rare" | "legendary";
+  image: ImageSourcePropType;
 };

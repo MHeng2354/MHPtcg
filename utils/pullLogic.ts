@@ -1,42 +1,73 @@
-import { CardType, PackType } from "../types/Card";
+import { CardType } from "../types/Card";
+
+type Rarity = CardType["rarity"];
+
+const COMMON_POOL: Rarity[] = ["common"];
+const UNCOMMON_POOL: Rarity[] = ["uncommon"];
+const RARE_POOL: Rarity[] = ["rare", "ultraRare"];
+const HIGH_RARE_POOL: Rarity[] = [
+  "illustrationRare",
+  "specialIllustrationRare",
+  "hyperRare",
+];
+
+export type PackPullResult = {
+  cards: CardType[];
+  isGodPack: boolean;
+};
 
 function randomFromPool(pool: CardType[], fallback: CardType[]) {
   const source = pool.length > 0 ? pool : fallback;
   return source[Math.floor(Math.random() * source.length)];
 }
 
-function getRandomCard(cards: CardType[], pack: PackType): CardType {
-  const rand = Math.random();
-
-  let rarity: CardType["rarity"];
-
-  if (pack.theme === "legendary") {
-    if (rand < 0.25) rarity = "common";
-    else if (rand < 0.65) rarity = "rare";
-    else rarity = "ultra";
-  } else if (pack.theme === "rare") {
-    if (rand < 0.45) rarity = "common";
-    else if (rand < 0.8) rarity = "rare";
-    else rarity = "ultra";
-  } else {
-    if (rand < 0.6) rarity = "common";
-    else if (rand < 0.85) rarity = "rare";
-    else rarity = "ultra";
-  }
-
-  const pool = cards.filter((card) => card.rarity === rarity);
-  return randomFromPool(pool, cards);
+function randomRarity(rarities: Rarity[]) {
+  return rarities[Math.floor(Math.random() * rarities.length)];
 }
 
-export function openPack(cards: CardType[], pack: PackType): CardType[] {
-  const results: CardType[] = [];
+function getRandomCardByRarityGroup(cards: CardType[], rarities: Rarity[]) {
+  const rarity = randomRarity(rarities);
+  const pool = cards.filter((card) => card.rarity === rarity);
 
-  for (let i = 0; i < 4; i++) {
-    results.push(getRandomCard(cards, pack));
+  if (pool.length > 0) {
+    return randomFromPool(pool, cards);
   }
 
-  const rarePool = cards.filter((card) => card.rarity !== "common");
-  results.push(randomFromPool(rarePool, cards));
+  const fallbackPool = cards.filter((card) => rarities.includes(card.rarity));
+  return randomFromPool(fallbackPool, cards);
+}
 
-  return results;
+function getGodPackCard(cards: CardType[]) {
+  return getRandomCardByRarityGroup(cards, HIGH_RARE_POOL);
+}
+
+export function openPack(cards: CardType[], godPackChance: number): PackPullResult {
+  const chance = Math.min(godPackChance, 1);
+  const isGodPack = Math.random() < chance;
+
+  if (isGodPack) {
+    return {
+      isGodPack: true,
+      cards: Array.from({ length: 10 }, () => getGodPackCard(cards)),
+    };
+  }
+
+  return {
+    isGodPack: false,
+    cards: [
+      getRandomCardByRarityGroup(cards, COMMON_POOL),
+      getRandomCardByRarityGroup(cards, COMMON_POOL),
+
+      getRandomCardByRarityGroup(cards, UNCOMMON_POOL),
+      getRandomCardByRarityGroup(cards, UNCOMMON_POOL),
+
+      getRandomCardByRarityGroup(cards, RARE_POOL),
+      getRandomCardByRarityGroup(cards, RARE_POOL),
+      getRandomCardByRarityGroup(cards, RARE_POOL),
+      getRandomCardByRarityGroup(cards, RARE_POOL),
+
+      getRandomCardByRarityGroup(cards, HIGH_RARE_POOL),
+      getRandomCardByRarityGroup(cards, HIGH_RARE_POOL),
+    ],
+  };
 }
