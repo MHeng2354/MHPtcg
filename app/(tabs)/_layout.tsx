@@ -34,7 +34,7 @@ export default function TabLayout() {
 			<Tabs.Screen
 				name="collection"
 				options={{
-					title: "Collection",
+					title: "Pokédex",
 					tabBarIcon: ({ color }) => (
 						<Ionicons name="albums" size={24} color={color} />
 					),
